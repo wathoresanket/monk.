@@ -1,0 +1,27 @@
+{
+  "name": "Monk.",
+  "short_name": "Monk.",
+  "description": "A personal focus journal for deep study and reflection",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#E8E0D4",
+  "theme_color": "#E8E0D4",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "lifestyle"],
+  "lang": "en",
+  "dir": "ltr"
+}
