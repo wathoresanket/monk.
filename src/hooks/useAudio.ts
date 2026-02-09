@@ -2,15 +2,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { SoundType, SoundSettings } from '@/types/monk';
 import { audioManager } from '@/lib/audio';
 
-export function useAudio(settings: SoundSettings) {
+export function useAudio(settings: SoundSettings, customAudioUrl?: string) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
 
   // Initialize audio manager with settings
   useEffect(() => {
     audioManager.setVolume(settings.volume);
-    audioManager.setSound(settings.type);
-  }, [settings.type, settings.volume]);
+    audioManager.setSound(settings.type, customAudioUrl);
+  }, [settings.type, settings.volume, customAudioUrl]);
 
   // Handle user interaction requirement
   const handleUserInteraction = useCallback(() => {
@@ -45,11 +45,11 @@ export function useAudio(settings: SoundSettings) {
   }, [isPlaying, play, stop]);
 
   const setSound = useCallback(async (type: SoundType) => {
-    await audioManager.setSound(type);
+    await audioManager.setSound(type, customAudioUrl);
     if (isPlaying) {
       await audioManager.play();
     }
-  }, [isPlaying]);
+  }, [isPlaying, customAudioUrl]);
 
   const setVolume = useCallback((volume: number) => {
     audioManager.setVolume(volume);
@@ -69,6 +69,12 @@ export function useAudio(settings: SoundSettings) {
     }
   }, [isPlaying, stop]);
 
+  const playBell = useCallback(async () => {
+    if (settings.bellEnabled) {
+      await audioManager.playBell(settings.bellVolume);
+    }
+  }, [settings.bellEnabled, settings.bellVolume]);
+
   return {
     isPlaying,
     hasInteracted,
@@ -80,5 +86,6 @@ export function useAudio(settings: SoundSettings) {
     setVolume,
     startOnSession,
     stopOnSession,
+    playBell,
   };
 }

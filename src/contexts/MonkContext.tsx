@@ -11,7 +11,9 @@ import {
   getAllMoments,
   saveMoment as dbSaveMoment,
   clearAllMoments,
-  clearAllData
+  clearAllData,
+  getCustomAudio,
+  saveCustomAudio
 } from '@/lib/database';
 import { saveBackup } from '@/lib/backup';
 
@@ -31,6 +33,10 @@ interface MonkContextType {
 
   // Loading state
   isLoading: boolean;
+
+  // Custom Audio
+  customAudioUrl: string | undefined;
+  uploadCustomAudio: (file: File) => Promise<void>;
 }
 
 const MonkContext = createContext<MonkContextType | null>(null);
@@ -39,21 +45,27 @@ export function MonkProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_APP_SETTINGS);
   const [moments, setMoments] = useState<Moment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [customAudioUrl, setCustomAudioUrl] = useState<string | undefined>(undefined);
 
   // Initialize database and load data
   useEffect(() => {
     async function init() {
       try {
         await initDatabase();
-        const [loadedSettings, loadedMoments] = await Promise.all([
+        const [loadedSettings, loadedMoments, loadedCustomAudio] = await Promise.all([
           getSettings(),
           getAllMoments(),
+          getCustomAudio(),
         ]);
         // Merge with defaults to ensure new fields are present
         setSettings({ ...DEFAULT_APP_SETTINGS, ...loadedSettings });
         setMoments(loadedMoments.sort((a, b) =>
           new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
         ));
+
+        if (loadedCustomAudio) {
+          setCustomAudioUrl(URL.createObjectURL(loadedCustomAudio));
+        }
       } catch (error) {
         console.error('Failed to initialize database:', error);
       } finally {
@@ -95,8 +107,17 @@ export function MonkProvider({ children }: { children: ReactNode }) {
     await clearAllData();
     setSettings(DEFAULT_APP_SETTINGS);
     setMoments([]);
+    setCustomAudioUrl(undefined);
     await saveBackup();
   }, []);
+
+  const uploadCustomAudio = useCallback(async (file: File) => {
+    await saveCustomAudio(file);
+    const url = URL.createObjectURL(file);
+    setCustomAudioUrl(url);
+    // Automatically select custom audio
+    await updateSettings({ sound: { ...settings.sound, type: 'custom' } });
+  }, [settings.sound, updateSettings]);
 
   return (
     <MonkContext.Provider
@@ -109,6 +130,8 @@ export function MonkProvider({ children }: { children: ReactNode }) {
         clearMoments,
         clearAll,
         isLoading,
+        customAudioUrl,
+        uploadCustomAudio,
       }}
     >
       {children}

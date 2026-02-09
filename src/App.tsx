@@ -60,7 +60,17 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
-      <Sonner />
+      <Sonner
+        className="toaster group"
+        toastOptions={{
+          classNames: {
+            toast: "group toast group-[.toaster]:bg-secondary group-[.toaster]:text-foreground group-[.toaster]:border-border/50 group-[.toaster]:shadow-lg monk-body",
+            description: "group-[.toast]:text-muted-foreground monk-caption",
+            actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground font-medium",
+            cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+          },
+        }}
+      />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<HomePage />} />

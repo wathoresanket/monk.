@@ -10,31 +10,41 @@
 @layer base {
   :root {
     /* Monastic Color Palette */
-    --background: 40 30% 94%; /* Warm parchment */
-    --foreground: 30 10% 15%; /* Deep ink black */
+    --background: 40 30% 94%;
+    /* Warm parchment */
+    --foreground: 30 10% 15%;
+    /* Deep ink black */
 
-    --card: 40 25% 91%; /* Aged paper */
+    --card: 40 25% 91%;
+    /* Aged paper */
     --card-foreground: 30 10% 15%;
 
     --popover: 40 28% 92%;
     --popover-foreground: 30 10% 15%;
 
-    --primary: 25 35% 35%; /* Muted clay/umber */
+    --primary: 25 35% 35%;
+    /* Muted clay/umber */
     --primary-foreground: 40 30% 94%;
 
-    --secondary: 35 15% 85%; /* Soft linen */
+    --secondary: 35 15% 85%;
+    /* Soft linen */
     --secondary-foreground: 30 10% 20%;
 
-    --muted: 35 12% 88%; /* Parchment gray */
-    --muted-foreground: 30 8% 45%; /* Ash gray */
+    --muted: 35 12% 88%;
+    /* Parchment gray */
+    --muted-foreground: 30 8% 45%;
+    /* Ash gray */
 
-    --accent: 38 40% 55%; /* Subtle amber (sparingly) */
+    --accent: 38 40% 55%;
+    /* Subtle amber (sparingly) */
     --accent-foreground: 30 10% 15%;
 
-    --destructive: 25 30% 40%; /* Muted earth (no red) */
+    --destructive: 25 30% 40%;
+    /* Muted earth (no red) */
     --destructive-foreground: 40 30% 94%;
 
-    --border: 35 18% 82%; /* Soft stone */
+    --border: 35 18% 82%;
+    /* Soft stone */
     --input: 35 18% 85%;
     --ring: 25 35% 35%;
 
@@ -50,11 +60,14 @@
     --monk-clay: 25 35% 42%;
     --monk-umber: 20 30% 35%;
     --monk-amber: 38 45% 58%;
-    
+
     /* Mood colors (non-judgmental) */
-    --monk-clear: 25 35% 50%; /* Warm clay */
-    --monk-neutral: 35 10% 65%; /* Parchment gray */
-    --monk-scattered: 40 35% 55%; /* Muted amber/ochre */
+    --monk-clear: 25 35% 50%;
+    /* Warm clay */
+    --monk-neutral: 35 10% 65%;
+    /* Parchment gray */
+    --monk-scattered: 40 35% 55%;
+    /* Muted amber/ochre */
 
     /* Timer ring */
     --monk-timer-bg: 35 15% 85%;
@@ -89,7 +102,8 @@
 
   body {
     @apply bg-background text-foreground;
-    line-height: 1.6; /* Relaxed line height for calm reading */
+    line-height: 1.6;
+    /* Relaxed line height for calm reading */
     font-weight: 400;
     letter-spacing: -0.01em;
   }
@@ -109,6 +123,37 @@
   :focus-visible {
     outline: 2px solid hsl(var(--ring) / 0.4);
     outline-offset: 2px;
+  }
+
+  /* Custom Scrollbar - Minimal and On-Theme */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--monk-stone) / 0.5);
+    border-radius: 99px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--monk-stone));
+  }
+
+  /* Custom Selection - Warm and earthy */
+  ::selection {
+    background: hsl(var(--monk-amber) / 0.3);
+    color: inherit;
+  }
+
+  /* Custom Caret */
+  input,
+  textarea {
+    caret-color: hsl(var(--primary));
   }
 }
 
@@ -170,6 +215,7 @@
       opacity: 0;
       transform: translateY(8px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -181,6 +227,7 @@
       opacity: 1;
       transform: translateY(0);
     }
+
     to {
       opacity: 0;
       transform: translateY(-8px);
@@ -188,10 +235,13 @@
   }
 
   @keyframes monkBreathe {
-    0%, 100% {
+
+    0%,
+    100% {
       transform: scale(1);
       opacity: 0.9;
     }
+
     50% {
       transform: scale(1.02);
       opacity: 1;
@@ -199,9 +249,12 @@
   }
 
   @keyframes monkPulseSoft {
-    0%, 100% {
+
+    0%,
+    100% {
       opacity: 0.6;
     }
+
     50% {
       opacity: 1;
     }
@@ -210,7 +263,10 @@
 
 /* Reduce motion preference */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

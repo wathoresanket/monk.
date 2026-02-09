@@ -49,6 +49,12 @@ export function ReflectionsScreen({ onClose }: ReflectionsScreenProps) {
     }
   }, [moments, scope]);
 
+  const todayMinutes = useMemo(() => {
+    const stats = calculateStats(moments);
+    const today = getDateString();
+    return stats.dailyMinutes[today] || 0;
+  }, [moments]);
+
   const stats = useMemo(() => calculateStats(filteredMoments), [filteredMoments]);
 
   // Generate insights
@@ -74,6 +80,16 @@ export function ReflectionsScreen({ onClose }: ReflectionsScreenProps) {
             <X className="w-5 h-5" />
           </button>
         </header>
+
+        {/* Persistent Daily Focus */}
+        <div className="flex flex-col items-center mb-8 animate-monk-fade-in">
+          <p className="monk-caption text-xs uppercase tracking-widest mb-1 opacity-60">
+            Today's Focus
+          </p>
+          <p className="monk-heading text-4xl font-medium">
+            {formatDuration(todayMinutes)}
+          </p>
+        </div>
 
         {/* Scope selector */}
         <div className="flex justify-center gap-2 mb-10">
@@ -114,11 +130,11 @@ export function ReflectionsScreen({ onClose }: ReflectionsScreenProps) {
         {/* Global Summary */}
         <div className="grid grid-cols-2 gap-6 mb-12">
           <SummaryCard
-            label="Minutes of Focus"
+            label="Total Focus"
             value={formatDuration(stats.totalMinutes)}
           />
           <SummaryCard
-            label="Deepest Moment"
+            label="Deepest Focus"
             value={stats.deepestMoment > 0 ? `${stats.deepestMoment} min` : '—'}
           />
         </div>
@@ -134,7 +150,7 @@ export function ReflectionsScreen({ onClose }: ReflectionsScreenProps) {
           {/* When You Find Focus */}
           <section className="animate-monk-fade-in">
             <section className="space-y-4">
-              <h2 className="monk-heading text-lg text-foreground">When you find focus</h2>
+              <h2 className="monk-heading text-lg text-foreground">When You Find Focus</h2>
               <TimeOfDayChart stats={stats} scope={scope} />
             </section>
           </section>
@@ -149,11 +165,11 @@ export function ReflectionsScreen({ onClose }: ReflectionsScreenProps) {
           </section>
         </div>
 
-        {/* Empty state */}
+        {/* Empty state message */}
         {filteredMoments.length === 0 && (
           <div className="text-center py-16 animate-monk-fade-in">
             <p className="monk-body text-muted-foreground">
-              This space will fill gently as you return.
+              This space will fill gently as you return to focus.
             </p>
           </div>
         )}

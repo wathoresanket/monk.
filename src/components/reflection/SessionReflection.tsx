@@ -67,7 +67,7 @@ export function SessionReflection({ moment, reduceMotion = false, onComplete }: 
           </div>
           <div className="space-y-2">
             <h2 className="monk-display text-3xl md:text-4xl text-foreground font-medium tracking-tight">
-              Moment complete
+              Moment Complete
             </h2>
             <p className="monk-body text-muted-foreground">
               Thank you for being here.

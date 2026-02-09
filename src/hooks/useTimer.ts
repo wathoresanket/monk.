@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { TimerState, SessionType, Moment, TimerSettings } from '@/types/monk';
 import { generateId } from '@/lib/database';
 import { getTimeOfDay, getDateString } from '@/lib/utils';
+import { invoke } from '@tauri-apps/api/core';
 
 interface UseTimerOptions {
   settings: TimerSettings;
@@ -49,6 +50,27 @@ export function useTimer({ settings, onSessionComplete, onSessionStart }: UseTim
     }
   }, [settings, state.currentType, state.isRunning, state.isPaused, getDurationForType]);
 
+  // Update tray title
+  useEffect(() => {
+    const updateTray = async () => {
+      try {
+        let title: string | null = null;
+        if (state.isRunning) {
+          const minutes = Math.floor(state.timeRemaining / 60);
+          const seconds = state.timeRemaining % 60;
+          const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+          // title = state.isPaused ? `⏸ ${timeString}` : timeString; 
+          // For menu bar, just time is usually cleaner, maybe with an icon state change?
+          // But user asked for timer in menu bar, and only when running.
+          title = timeString;
+        }
+        await invoke('update_tray_title', { title });
+      } catch (error) {
+        console.error('Failed to update tray title:', error);
+      }
+    };
+    updateTray();
+  }, [state.timeRemaining, state.isRunning, state.isPaused]);
 
 
   const clearIntervals = useCallback(() => {
@@ -72,9 +94,15 @@ export function useTimer({ settings, onSessionComplete, onSessionStart }: UseTim
     // Calculate actual minutes focused (rounded)
     // If completed naturally: actual = planned
     // If interrupted: actual = planned - remaining
-    const actualMinutes = completed
+    let actualMinutes = completed
       ? plannedMinutes
       : Math.round(((state.totalTime - state.timeRemaining) / 60) * 10) / 10;
+
+    // Ensure at least 0.1 min if user focused for > 5 seconds but rounding made it 0
+    const elapsedSeconds = state.totalTime - state.timeRemaining;
+    if (!completed && actualMinutes === 0 && elapsedSeconds >= 5) {
+      actualMinutes = 0.1;
+    }
 
     const moment: Moment = {
       id: sessionIdRef.current || generateId(),
@@ -98,6 +126,9 @@ export function useTimer({ settings, onSessionComplete, onSessionStart }: UseTim
       deepModeLocked: false,
       timeRemaining: getDurationForType(prev.currentType, settings) * 60,
     }));
+
+    // Clear tray title explicitly on completion
+    invoke('update_tray_title', { title: null }).catch(console.error);
 
     onSessionComplete(moment);
   }, [state, settings, getDurationForType, clearIntervals, onSessionComplete]);
@@ -128,7 +159,7 @@ export function useTimer({ settings, onSessionComplete, onSessionStart }: UseTim
     // Main countdown
     intervalRef.current = window.setInterval(() => {
       setState((prev) => {
-        if (prev.timeRemaining <= 1) {
+        if (prev.timeRemaining <= 0) {
           // Session complete
           clearIntervals();
           return prev; // Will be handled by effect
@@ -167,7 +198,7 @@ export function useTimer({ settings, onSessionComplete, onSessionStart }: UseTim
 
     intervalRef.current = window.setInterval(() => {
       setState((prev) => {
-        if (prev.timeRemaining <= 1) {
+        if (prev.timeRemaining <= 0) {
           clearIntervals();
           return prev;
         }
@@ -210,7 +241,10 @@ export function useTimer({ settings, onSessionComplete, onSessionStart }: UseTim
 
   // Cleanup on unmount
   useEffect(() => {
-    return () => clearIntervals();
+    return () => {
+      clearIntervals();
+      invoke('update_tray_title', { title: null }).catch(console.error);
+    };
   }, [clearIntervals]);
 
   const progress = state.totalTime > 0

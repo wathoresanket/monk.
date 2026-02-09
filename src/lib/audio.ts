@@ -8,6 +8,7 @@ class AudioManager {
   private fadeInterval: number | null = null;
   private targetVolume: number = 0.5;
   private isPlaying: boolean = false;
+  private context: AudioContext | null = null;
 
   constructor() {
     // Initialize on first user interaction
@@ -28,8 +29,9 @@ class AudioManager {
     }
   }
 
-  async setSound(type: SoundType): Promise<void> {
-    if (type === this.currentSound && this.audio?.src) return;
+  async setSound(type: SoundType, customUrl?: string): Promise<void> {
+    if (type === this.currentSound && this.audio?.src && type !== 'custom') return;
+    if (type === 'custom' && this.currentSound === 'custom' && this.audio?.src === customUrl) return;
 
     this.currentSound = type;
 
@@ -39,7 +41,11 @@ class AudioManager {
       return;
     }
 
-    const url = SOUND_URLS[type];
+    let url = SOUND_URLS[type];
+    if (type === 'custom' && customUrl) {
+      url = customUrl;
+    }
+
     console.log('[Audio] Setting sound URL:', url);
     if (!url) return;
 
@@ -165,6 +171,82 @@ class AudioManager {
 
   getIsPlaying(): boolean {
     return this.isPlaying;
+  }
+
+  async playBell(volume: number = 0.5): Promise<void> {
+    if (typeof window === 'undefined') return;
+
+    try {
+      console.log('[Audio] playBell called with volume:', volume);
+
+      if (!this.context) {
+        console.log('[Audio] Initializing AudioContext');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+        if (!AudioContext) {
+          console.error('[Audio] AudioContext not supported');
+          return;
+        }
+        this.context = new AudioContext();
+      }
+
+      console.log('[Audio] Context state:', this.context.state);
+
+      if (this.context.state === 'suspended') {
+        console.log('[Audio] Resuming suspended context');
+        await this.context.resume();
+        console.log('[Audio] Context state after resume:', this.context.state);
+      }
+
+      const ctx = this.context;
+      const now = ctx.currentTime;
+      console.log('[Audio] Current time:', now);
+
+      // Master gain for volume control
+      const masterGain = ctx.createGain();
+      masterGain.connect(ctx.destination);
+      masterGain.gain.setValueAtTime(volume, now);
+      console.log('[Audio] Master gain set');
+
+      // Bell parameters - Tibetan Bowl style
+      const fundamental = 180; // Lower fundamental for a bowl
+      // Inharmonic partials characteristic of metal bowls
+      const ratios = [1, 2.7, 5.18, 8.13, 11.8];
+      const gains = [1, 0.4, 0.2, 0.1, 0.05];
+      const duration = 12; // Much longer sustain
+
+      ratios.forEach((ratio, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(fundamental * ratio, now);
+
+        // Subtle detuning for "beating" effect
+        if (i > 0) {
+          osc.detune.setValueAtTime(Math.random() * 5 - 2.5, now);
+        }
+
+        // Envelope: soft attack, very long exponential decay
+        const partialGain = gains[i];
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(partialGain, now + 0.1 + (i * 0.05)); // Staggered attack
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration - (i * 1.5)); // Higher partials decay faster
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+
+        osc.start(now);
+        osc.stop(now + duration);
+      });
+      console.log('[Audio] Oscillators started');
+
+      // No cleanup of context needed since we reuse it.
+      // We could garbage collect nodes but they handle themselves upon stopping usually.
+
+    } catch (e) {
+      console.error('[Audio] Failed to play bell with error:', e);
+    }
   }
 
   getCurrentSound(): SoundType {

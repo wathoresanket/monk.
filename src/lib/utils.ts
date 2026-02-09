@@ -129,8 +129,8 @@ export function generateDailyInsight(moments: Moment[], today: Date = new Date()
   const todayStr = getDateString(today);
   const yesterdayStr = getDateString(new Date(today.getTime() - 24 * 60 * 60 * 1000));
 
-  const todayMoments = moments.filter((m) => m.date === todayStr && m.completed);
-  const yesterdayMoments = moments.filter((m) => m.date === yesterdayStr && m.completed);
+  const todayMoments = moments.filter((m) => m.date === todayStr && m.completed && m.type === 'focus');
+  const yesterdayMoments = moments.filter((m) => m.date === yesterdayStr && m.completed && m.type === 'focus');
 
   if (todayMoments.length === 0) {
     return null;
@@ -176,7 +176,7 @@ export function generateWeeklyInsight(moments: Moment[]): PatternInsight | null 
   const now = new Date();
   const weekStart = getStartOfWeek(now);
   const weekMoments = moments.filter(
-    (m) => new Date(m.date) >= weekStart && m.completed
+    (m) => new Date(m.date) >= weekStart && m.completed && m.type === 'focus'
   );
 
   if (weekMoments.length < 3) {

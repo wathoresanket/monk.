@@ -4,10 +4,18 @@ use tauri::{
   Manager,
 };
 
+#[tauri::command]
+fn update_tray_title(app: tauri::AppHandle, title: Option<String>) {
+  if let Some(tray) = app.tray_by_id("main") {
+    let _ = tray.set_title(title.as_deref());
+  }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
     .plugin(tauri_plugin_fs::init())
+    .invoke_handler(tauri::generate_handler![update_tray_title])
     .setup(|app| {
       if cfg!(debug_assertions) {
         app.handle().plugin(
@@ -22,7 +30,7 @@ pub fn run() {
       let show_i = MenuItem::with_id(app, "show", "Show Monk.", true, None::<&str>)?;
       let menu = Menu::with_items(app, &[&show_i, &quit_i])?;
 
-      let _tray = TrayIconBuilder::new()
+      let _tray = TrayIconBuilder::with_id("main")
         .icon(app.default_window_icon().unwrap().clone())
         .menu(&menu)
         .show_menu_on_left_click(false)

@@ -1,76 +1,112 @@
 # Monk.
 
+![Monk Logo](./assets/monk.-official-logo.png)
+
 > *A sanctuary for your focus.*
 
-**Monk.** is not just another Pomodoro timer. It is a **focus companion** designed to help you find your rhythm, respect your energy, and reflect on your work with intention.
-
-Built as a **vibe coding project** using **Lovable** and **Antigravity**, it prioritizes a "zen-like" aesthetic, honest data, and a calm user experience over rigid productivity metrics.
-
-![Monk App Screenshot](https://raw.githubusercontent.com/placeholder/monk-screenshot.png)
-
-## Philosophy & Features
-
-Most timers are about **forcing** you to work. Monk. is about **inviting** you to focus.
-
-### Core Features
-
--   **Deep Focus & Flow**: A minimalist circular timer that breathes with you. No ticking, no anxiety.
--   **Opening Breath**: Every session begins with a 3-second inhale/exhale animation to center your mind before you start.
--   **Honest Reflections**: At the end of every session, you aren't just done. You reflect: *Was your mind Clear, Neutral, or Scattered?*
--   **Rhythm Analytics**: Visualize your focus patterns. See when you are most productive (Morning vs. Evening) and how your focus quality trends over time.
--   **Ambient Soundscapes**: Built-in high-fidelity sounds (Tibetan Bowls, Nature) to mask distractions.
--   **Distraction-Free**: A "Reduce Motion" mode and simple interface that gets out of your way.
-
-### Why Monk.?
-
-| Feature | Standard Pomodoro | Monk. |
-| :--- | :--- | :--- |
-| **Goal** | maximize output | maximize presence |
-| **Start** | abrupt click | centering breath |
-| **End** | "Done" | "How did it feel?" |
-| **Data** | minutes tracked | focus quality & rhythm |
-| **Vibe** | utilitarian | mindful |
-
-## Tech Stack
-
-Monk. is a native macOS application built with modern web technologies:
-
--   **Framework**: [Tauri v2](https://tauri.app/) (Rust + Webview)
--   **Frontend**: React + TypeScript + Vite
--   **Styling**: Tailwind CSS + Shadcn UI + Framer Motion
--   **Data**: IndexedDB (Local-first, privacy-focused)
--   **AI Partners**: **Lovable** (UI Generation) & **Antigravity** by Google (Logic & Refinement)
+**Monk.** is a minimal, distraction-free focus timer designed to help you find your rhythm. It invites you to work with intention, offering a quiet space free from gamification and clutter.
 
 ---
 
-## Installation & Troubleshooting
+## 🍃 Why Monk?
 
-### 1. Download & Install
-1.  **Locate the Release**: The latest `.dmg` installer is located at:
-    `src-tauri/target/release/bundle/dmg/Monk._0.1.0_aarch64.dmg`
-2.  Drag **Monk.** to your **Applications** folder.
+Most productivity tools treat you like a machine—pushing you to squeeze more output from every minute. They gamify your work with streaks, badges, and aggressive ticking clocks.
 
-### 2. "App is damaged" Error?
-Because this app is self-signed (not from the Mac App Store), macOS Gatekeeper might block it. If you see a message saying *"Monk. is damaged and can't be opened"*, follow these simple steps:
+**Monk. is different.** It believes that *how* you work matters as much as *what* you finish.
 
-1.  Open your **Terminal** app.
-2.  Paste the following command and hit Enter:
-    ```bash
-    xattr -cr /Applications/Monk..app
-    ```
-3.  **Right-click** the app icon and select **Open**.
+| Standard Pomodoro Apps 🍅 | Monk. 🏔️ |
+| :--- | :--- |
+| **Goal**: Maximize speed & output | **Goal**: Deepen presence & focus |
+| **Start**: Abrupt click | **Start**: 3-second grounding breath |
+| **End**: Checkmark ("Done") | **End**: Reflection ("How did it feel?") |
+| **Vibe**: Digital, Urgent, Gamified | **Vibe**: Natural, Calm, Intentional |
+| **Data**: Minutes tracked | **Data**: Focus quality & rhythm |
 
-That's it! The app is now whitelisted and will open normally.
+Monk. doesn't just time your work; it creates a ritual around it.
+
+---
+
+## 🌿 The Experience
+
+Monk. is more than just a timer. It is a complete cycle of focus, designed to respect your energy.
+
+### 1. The Timer
+![Monk Home Screen](./assets/monk.-home.png)
+
+A simple, uncluttered circle to hold your focus.
+- **Breathing Entry**: Every session begins with a gentle 3-second inhale and exhale, helping you transition from "busy" to "present."
+- **Deep Mode**: Need to commit? Lock the timer to prevent pauses.
+- **Flexible Sessions**: Seamlessly switch between Focus, Short Break, and Long Break modes.
+
+### 2. The Atmosphere
+Mask the noise of the world with high-fidelity soundscapes.
+- **Built-in Sound**: Minimalist "Windy Mountains" ambience.
+- **Custom Audio**: Have a specific track that helps you flow? Upload your own audio file directly in Settings to use as your background sound.
+- **Dynamic Control**: Mute specific sounds or the entire app with a single click.
+
+### 3. Reflections
+![Monk Reflections](./assets/monk.-reflections.png)
+
+When your timer ends, Monk. asks a simple question: *How did it feel?*
+Instead of just tracking minutes, you track your state of mind:
+- **Clear**: You felt sharp and present.
+- **Neutral**: You got the work done.
+- **Scattered**: Your mind wandered (and that's okay).
+
+### 4. Your Journal (Data)
+Your history is yours to keep and learn from.
+- **Rhythm Charts**: See when you are most focused during the day (Morning, Afternoon, Evening).
+- **Mood Trends**: Visualize how your focus quality changes over the week.
+- **Export Options**:
+    - **Backup (JSON)**: Save a full backup of your entire history and settings.
+    - **Spreadsheet (CSV)**: Export raw data for your own analysis.
+    - **Journal (PDF)**: Download a beautifully formatted report of your sessions.
+
+### 5. Settings & Customization
+![Monk Settings](./assets/monk.-settings.png)
+
+Make the space your own.
+- **Durations**: Customize the exact length of your focus and break intervals.
+- **Reduce Motion**: Turn off meaningful animations for a simpler, static interface.
+- **Import/Export**: Move your data between devices easily using the Backup & Restore feature.
+
+---
+
+## 🔒 Privacy & Philosophy
+
+**Monk.** is **local-first**.
+-   **No Account Required**: You don't need to sign up.
+-   **No Cloud Storage**: All your data lives locally on your device in your browser's database.
+-   **No Tracking**: We do not collect metrics, usage data, or personal information.
+
+---
+
+## Installation
+
+### macOS (Apple Silicon)
+1.  **Download**: [Monk-macOS-aarch64.dmg](./releases/Monk-macOS-aarch64.dmg)
+2.  **Install**: Open the downloaded file and drag **Monk.** to your **Applications** folder.
+3.  **Open**: Launch the app from Spotlight or Applications.
+
+### Troubleshooting
+If macOS says *"Monk. is damaged and can't be opened"* (common for self-signed apps):
+1.  Open **Terminal**.
+2.  Run: `xattr -cr /Applications/Monk..app`
+3.  Right-click the app and select **Open**.
 
 ---
 
 ## For Developers
 
-Want to build it yourself?
+### Prerequisites
+-   **Node.js**: v18+
+-   **Rust**: Install via `rustup`.
 
+### Local Setup
 1.  **Clone the repo**:
     ```bash
     git clone https://github.com/yourusername/monk.git
+    cd monk
     ```
 2.  **Install dependencies**:
     ```bash
@@ -80,11 +116,13 @@ Want to build it yourself?
     ```bash
     npm run tauri dev
     ```
-4.  **Build for production**:
-    ```bash
-    npm run tauri build
-    ```
+
+### Build for Production
+To create the `.dmg`:
+```bash
+npm run tauri build
+```
 
 ---
 
-*Made with intentionality by Sanket.*
+*Made with intentionality.*

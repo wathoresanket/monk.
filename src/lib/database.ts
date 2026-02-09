@@ -3,12 +3,15 @@
 import { Moment, AppSettings, DEFAULT_APP_SETTINGS, PatternInsight } from '@/types/monk';
 
 const DB_NAME = 'monk-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
+
 
 // Store names
 const MOMENTS_STORE = 'moments';
 const SETTINGS_STORE = 'settings';
 const INSIGHTS_STORE = 'insights';
+const ASSETS_STORE = 'assets';
+
 
 let db: IDBDatabase | null = null;
 
@@ -51,6 +54,11 @@ export async function initDatabase(): Promise<IDBDatabase> {
         const insightsStore = database.createObjectStore(INSIGHTS_STORE, { keyPath: 'id', autoIncrement: true });
         insightsStore.createIndex('type', 'type', { unique: false });
         insightsStore.createIndex('generatedAt', 'generatedAt', { unique: false });
+      }
+
+      // Assets store (for custom audio)
+      if (!database.objectStoreNames.contains(ASSETS_STORE)) {
+        database.createObjectStore(ASSETS_STORE); // Key-value store, no keyPath needed if using out-of-line keys
       }
     };
   });
@@ -195,14 +203,14 @@ export async function exportMomentsToCSV(): Promise<string> {
     return 'No moments recorded yet.';
   }
 
-  const headers = ['Date', 'Time', 'Actual (min)', 'Intention (min)', 'Session', 'Completed', 'Reflection'];
+  const headers = ['Date', 'Time', 'Duration', 'Target', 'Type', 'Status', 'Feeling'];
   const rows = moments.map((m) => [
     m.date,
     new Date(m.startTime).toLocaleTimeString(),
     m.duration.toString(),
     (m.plannedDuration || m.duration).toString(), // Fallback for old records
     m.type,
-    m.completed ? 'Yes' : 'No',
+    m.completed ? 'Done' : 'Incomplete',
     m.mood || '-',
   ]);
 
@@ -239,10 +247,10 @@ export async function exportMomentsToPDF(): Promise<Blob> {
           <tr>
             <th>Date</th>
             <th>Time</th>
-            <th>Intention</th>
-            <th>Actual</th>
-            <th>Session</th>
-            <th>Reflection</th>
+            <th>Target</th>
+            <th>Duration</th>
+            <th>Type</th>
+            <th>Feeling</th>
           </tr>
         </thead>
         <tbody>
@@ -278,6 +286,33 @@ export async function clearAllData(): Promise<void> {
 
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => reject(new Error('Failed to clear data'));
+  });
+}
+
+// Custom Audio CRUD
+
+
+export async function saveCustomAudio(blob: Blob): Promise<void> {
+  const database = await initDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction([ASSETS_STORE], 'readwrite');
+    const store = transaction.objectStore(ASSETS_STORE);
+    const request = store.put(blob, 'custom-audio'); // Fixed key for single custom audio file
+
+    request.onerror = () => reject(new Error('Failed to save custom audio'));
+    request.onsuccess = () => resolve();
+  });
+}
+
+export async function getCustomAudio(): Promise<Blob | undefined> {
+  const database = await initDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction([ASSETS_STORE], 'readonly');
+    const store = transaction.objectStore(ASSETS_STORE);
+    const request = store.get('custom-audio');
+
+    request.onerror = () => reject(new Error('Failed to get custom audio'));
+    request.onsuccess = () => resolve(request.result);
   });
 }
 

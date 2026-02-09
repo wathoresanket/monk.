@@ -7,9 +7,12 @@ export type MoodType = 'clear' | 'neutral' | 'scattered';
 export type TimeOfDay = 'morning' | 'afternoon' | 'evening';
 export const TIME_OF_DAY_VALUES: TimeOfDay[] = ['morning', 'afternoon', 'evening'];
 
-export type SoundType = 'tibetan' | 'silence';
+export type SoundType = 'tibetan' | 'silence' | 'custom';
 
 export type TimeScope = 'week' | 'month' | 'all';
+
+// ... (existing code)
+
 
 export interface Moment {
   id: string;
@@ -37,6 +40,8 @@ export interface SoundSettings {
   type: SoundType;
   volume: number; // 0-1
   autoStart: boolean;
+  bellEnabled: boolean;
+  bellVolume: number; // 0-1
 }
 
 export interface AppSettings {
@@ -91,6 +96,8 @@ export const DEFAULT_SOUND_SETTINGS: SoundSettings = {
   type: 'tibetan',
   volume: 0.5,
   autoStart: false,
+  bellEnabled: true,
+  bellVolume: 0.5,
 };
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
@@ -102,13 +109,15 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
 };
 
 export const SOUND_URLS: Record<SoundType, string> = {
-  tibetan: '/sounds/tibetan-mountain-meditation.ogg?v=3',
+  tibetan: '/sounds/wind-in-the-mountains.mp3',
   silence: '',
+  custom: '',
 };
 
 export const SOUND_LABELS: Record<SoundType, string> = {
-  tibetan: 'Tibetan Mountain',
+  tibetan: 'Default',
   silence: 'Silence',
+  custom: 'Custom',
 };
 
 export const SESSION_TYPE_LABELS: Record<SessionType, string> = {

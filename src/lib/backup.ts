@@ -1,7 +1,7 @@
 
 import { writeTextFile, readTextFile, BaseDirectory, exists, mkdir } from '@tauri-apps/plugin-fs';
-import { AppSettings, Moment } from '@/types/monk';
-import { getAllMoments, getSettings } from './database';
+import { AppSettings, Moment, PatternInsight } from '@/types/monk';
+import { getAllMoments, getSettings, saveSettings, saveMoment } from './database';
 
 const BACKUP_DIR = 'Monk';
 const BACKUP_FILE = 'monk_backup.json';
@@ -60,11 +60,59 @@ export async function restoreBackup(): Promise<boolean> {
             throw new Error('Invalid backup format');
         }
 
-        // TODO: Import data back into IndexedDB
-        // For now we just return true to indicate success reading
+        // Import settings
+        await saveSettings(data.settings);
+
+        // Import moments (merge strategy: overwrite if exists, add if new)
+        for (const moment of data.moments) {
+            await saveMoment(moment);
+        }
+
         return true;
     } catch (error) {
         console.error('Failed to restore backup:', error);
         return false;
+    }
+}
+
+export async function exportData(): Promise<string> {
+    const [settings, moments] = await Promise.all([
+        getSettings(),
+        getAllMoments(),
+    ]);
+
+    const backupData: BackupData = {
+        version: 1,
+        timestamp: new Date().toISOString(),
+        settings,
+        moments,
+    };
+
+    return JSON.stringify(backupData, null, 2);
+}
+
+export async function importData(jsonData: string): Promise<boolean> {
+    try {
+        const data: BackupData = JSON.parse(jsonData);
+
+        // Validate basic structure
+        if (!data.settings || !Array.isArray(data.moments)) {
+            throw new Error('Invalid backup format: missing settings or moments');
+        }
+
+        // Import settings
+        await saveSettings(data.settings);
+
+        // Import moments
+        // Strategy: We iterate through imported moments and save them.
+        // saveMoment uses `put`, so it will update if ID exists, or insert if not.
+        for (const moment of data.moments) {
+            await saveMoment(moment);
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Failed to import data:', error);
+        throw error;
     }
 }

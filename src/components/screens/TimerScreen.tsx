@@ -4,6 +4,7 @@ import { useMonk } from '@/contexts/MonkContext';
 import { useTimer } from '@/hooks/useTimer';
 import { useAudio } from '@/hooks/useAudio';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useCursorAutoHide } from '@/hooks/useCursorAutoHide';
 import { Moment, MoodType } from '@/types/monk';
 import {
   CircularTimer,
@@ -14,7 +15,9 @@ import {
 } from '@/components/timer';
 import { SessionReflection } from '@/components/reflection';
 import { MonkLogo } from '@/components/common/MonkLogo';
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from '@/lib/utils';
+import { useMemo } from 'react';
 
 interface TimerScreenProps {
   isSettingsOpen: boolean;
@@ -29,12 +32,13 @@ export function TimerScreen({
   onToggleSettings,
   onToggleReflections
 }: TimerScreenProps) {
-  const { settings, addMoment, updateSettings } = useMonk();
+  const { settings, addMoment, updateSettings, customAudioUrl, moments } = useMonk();
   const [showBreathing, setShowBreathing] = useState(false);
   const [pendingStart, setPendingStart] = useState(false);
   const [completedMoment, setCompletedMoment] = useState<Moment | null>(null);
 
-  const audioControls = useAudio(settings.sound);
+  const audioControls = useAudio(settings.sound, customAudioUrl);
+
 
   // Sync audio playback with enabled setting
   useEffect(() => {
@@ -43,7 +47,7 @@ export function TimerScreen({
     } else if (!settings.sound.enabled && audioControls.isPlaying) {
       audioControls.stop();
     }
-  }, [settings.sound.enabled, audioControls.isPlaying]);
+  }, [settings.sound.enabled, audioControls.isPlaying, audioControls.play, audioControls.stop, audioControls]);
 
   const toggleMute = useCallback(() => {
     // Attempt to handle interaction if possible
@@ -54,7 +58,6 @@ export function TimerScreen({
   }, [settings.sound, updateSettings, audioControls]);
 
   const handleSessionComplete = useCallback((moment: Moment) => {
-    // Show reflection if enabled AND it's a focus session with duration
     if (settings.reflectionPromptEnabled && moment.type === 'focus' && moment.duration > 0) {
       setCompletedMoment(moment);
     } else {
@@ -62,6 +65,7 @@ export function TimerScreen({
       addMoment(moment);
     }
     audioControls.stopOnSession();
+    audioControls.playBell();
   }, [addMoment, audioControls, settings.reflectionPromptEnabled]);
 
   const handleSessionStart = useCallback(() => {
@@ -73,6 +77,24 @@ export function TimerScreen({
     onSessionComplete: handleSessionComplete,
     onSessionStart: handleSessionStart,
   });
+
+  // Update document title
+  useEffect(() => {
+    if (timer.state.isRunning || timer.state.isPaused) {
+      const minutes = Math.floor(timer.state.timeRemaining / 60);
+      const seconds = timer.state.timeRemaining % 60;
+      const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      const typeLabel = timer.state.currentType === 'focus' ? 'Focus' :
+        timer.state.currentType === 'short-break' ? 'Short Break' : 'Long Break';
+      document.title = `${timeString} - ${typeLabel}`;
+    } else {
+      document.title = 'Monk.';
+    }
+
+    return () => {
+      document.title = 'Monk.';
+    };
+  }, [timer.state.timeRemaining, timer.state.isRunning, timer.state.isPaused, timer.state.currentType]);
 
   // Handle start with optional breathing transition
   const handleStart = useCallback(() => {
@@ -125,6 +147,9 @@ export function TimerScreen({
     onSoundToggle: toggleMute,
   });
 
+  // Auto-hide cursor when timer is running and no modals are open
+  useCursorAutoHide(timer.state.isRunning && !isSettingsOpen && !isReflectionsOpen);
+
   // Show reflection screen
   if (completedMoment) {
     return (
@@ -161,36 +186,49 @@ export function TimerScreen({
             onToggle={toggleMute}
           />
 
-          <button
-            onClick={onToggleReflections}
-            className={cn(
-              "p-2 rounded-lg transition-all duration-400 ease-monk-gentle",
-              "text-muted-foreground hover:text-foreground",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-              isReflectionsOpen && "text-foreground bg-secondary"
-            )}
-            title="Reflections (R)"
-          >
-            <BookOpen className="w-5 h-5" />
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={onToggleReflections}
+                className={cn(
+                  "p-2 rounded-lg transition-all duration-400 ease-monk-gentle active:scale-95",
+                  "text-muted-foreground hover:text-foreground",
+                  "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  isReflectionsOpen && "text-foreground bg-secondary"
+                )}
+              >
+                <BookOpen className="w-5 h-5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>Reflections (R)</p>
+            </TooltipContent>
+          </Tooltip>
 
-          <button
-            onClick={onToggleSettings}
-            className={cn(
-              "p-2 rounded-lg transition-all duration-400 ease-monk-gentle",
-              "text-muted-foreground hover:text-foreground",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-              isSettingsOpen && "text-foreground bg-secondary"
-            )}
-            title="Settings (S)"
-          >
-            <Settings className="w-5 h-5" />
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={onToggleSettings}
+                className={cn(
+                  "p-2 rounded-lg transition-all duration-400 ease-monk-gentle active:scale-95",
+                  "text-muted-foreground hover:text-foreground",
+                  "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  isSettingsOpen && "text-foreground bg-secondary"
+                )}
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>Settings (S)</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </header>
 
       {/* Main content */}
-      <main className="flex flex-col items-center gap-12">
+      {/* Main content */}
+      <main className="flex flex-col items-center gap-6 md:gap-12 w-full max-w-lg mx-auto z-10 pb-20 md:pb-0">
         {/* Session type selector - hidden when active */}
         <div
           className={cn(
@@ -240,26 +278,8 @@ export function TimerScreen({
       </main>
 
       {/* Footer hint */}
-      <footer className="fixed bottom-6 left-0 right-0 text-center space-y-2 pointer-events-none">
-        <div className="flex items-center justify-center gap-4 opacity-50 hover:opacity-100 transition-opacity duration-500">
-          <div className="flex items-center gap-2">
-            <span className="border border-foreground/20 rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wider font-medium">Space</span>
-            <span className="text-[10px] tracking-wide">{isActive ? (timer.state.isRunning ? 'pause' : 'resume') : 'start'}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="border border-foreground/20 rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wider font-medium">R</span>
-            <span className="text-[10px] tracking-wide">reflections</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="border border-foreground/20 rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wider font-medium">S</span>
-            <span className="text-[10px] tracking-wide">settings</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="border border-foreground/20 rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wider font-medium">M</span>
-            <span className="text-[10px] tracking-wide">mute</span>
-          </div>
-        </div>
-        <p className="text-[10px] font-medium tracking-widest uppercase text-muted-foreground opacity-80 pt-2">
+      <footer className="fixed bottom-4 md:bottom-6 left-0 right-0 text-center space-y-1 vector-effect-non-scaling-stroke pointer-events-none z-20">
+        <p className="monk-caption text-[9px] md:text-[10px] tracking-widest uppercase opacity-40 pt-2 md:pt-4">
           Made by Sanket
         </p>
       </footer>
